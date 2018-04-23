@@ -17,8 +17,7 @@ Motor::Motor() {
 }
 
 Motor::Motor(int pwm_pin, uint8_t shiftreg_offset) {
-    _pwm_pin = pwm_pin;
-    _shiftreg_offset = shiftreg_offset;
+    init(pwm_pin, shiftreg_offset);
     _max_pwm = 255;
 }
 
