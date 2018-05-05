@@ -3,9 +3,8 @@
 #include <stdint.h>
 #include <fcntl.h>
 #include <linux/joystick.h>
-#include <pthread.h>
 #include <errno.h>
-#include <unistd.h>
+#include <math.h>
 
 #define handle_error(msg) \
 	do { perror(msg); exit(EXIT_FAILURE); } while(0)
@@ -30,9 +29,11 @@ void controller_reader_func() {
 #define PAD_RIGHT_XNUM 0
 #define PAD_RIGHT_YNUM 1
 
+//#define DEBUG_MODE 1
+
 typedef struct controller_pad {
-	int16_t x;
-	int16_t y;
+	double x;
+	double y;
 }controller_pad;
 
 
@@ -40,6 +41,13 @@ typedef struct controller_button {
 	uint8_t number;
 	uint8_t state;
 }controller_button;
+
+double circularConstraint(double x, double min, double max) {
+	double interval = max - min;
+	if(x < min) x+=interval;
+	if(x > max) x-=interval;
+	return x;
+}
 
 void main() {
 	/*
@@ -63,13 +71,21 @@ void main() {
 		if(e.type==JS_EVENT_AXIS) printf("Axis %d moved at %d!\n", e.number, e.value);
 		*/
 		if(e.type==JS_EVENT_AXIS) {
-			if(e.number == PAD_LEFT_XNUM) left_pad.x = e.value;
-			if(e.number == PAD_LEFT_YNUM) left_pad.y = e.value;
-			if(e.number == PAD_RIGHT_XNUM) right_pad.x = e.value;
-			if(e.number == PAD_RIGHT_YNUM) right_pad.y = e.value;
-			printf("\t[lpad]=(%d, %d)", left_pad.x, left_pad.y);
-			printf("\t[rpad]=(%d, %d)", right_pad.x, right_pad.y);
-			printf("\n");
+			//if(e.number == PAD_LEFT_XNUM) left_pad.x = e.value;
+			//if(e.number == PAD_LEFT_YNUM) left_pad.y = e.value-127;
+			if(e.number == PAD_RIGHT_XNUM) right_pad.x = (double)e.value / INT16_MAX;
+			if(e.number == PAD_RIGHT_YNUM) right_pad.y = -((double)e.value) / INT16_MAX ;
+			#ifdef DEBUG_MODE
+			printf("[lpad]=(%f, %f)\t", left_pad.x, left_pad.y);
+			printf("[rpad]=(%f, %f)\t", right_pad.x, right_pad.y);
+			//printf("\n");
+			#endif
+			
+			//double direction = circularConstraint(atan2(right_pad.y, right_pad.x) * (180/M_PI), 0, 360);
+			int16_t dir = circularConstraint(atan2(right_pad.y, right_pad.x) * (180/M_PI), 0, 360);
+			double mag = sqrt(pow(right_pad.y,2) + pow(right_pad.x,2));
+			printf("[dir]=%d\t[mag]=%1f\n",dir,mag);
+			
 		}  
 	}	
 }

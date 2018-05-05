@@ -1,0 +1,26 @@
+
+PREFIX=../
+ARCH=arch/teensy
+CC=avr-gcc
+INCLUDE_DIRS=-I$(PREFIX)/src/common -I$(PREFIX)/src/arch/include
+#Da completare
+CC_OPTS=-Wall --std=gnu99 
+
+AVRDUDE=avrdude
+
+ARCHITECTURE  = avr
+ARDUINO_DIR  = /home/emanuele/.local/share/umake/ide/arduino
+ARDMK_DIR    = /usr/share/arduino
+BOARD_TAG    = teensy31
+ARDUINO_LIBS =	
+
+include /usr/share/arduino/Teensy.mk
+
+#common objects
+%.o:	$(PREFIX)/src/common/%.c
+	$(CC) $(CC_OPTS) -c $<
+
+#peripherals
+%.o:	$(PREFIX)/src/$(ARCH)/%.c
+	$(CC) $(CC_OPTS) -c $<
+	
