@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#define NUM_MOTORS 2
+#define NUM_MOTORS 4
 
 // simple macro to initialize a packet
 #define INIT_PACKET(var, id)			\
@@ -91,6 +91,24 @@ typedef struct  {
   uint32_t idle_cycles;
 } SystemStatusPacket;
 #define SYSTEM_STATUS_PACKET_ID 2
+
+typedef struct  {
+  PacketHeader header;
+  JointInfo joints[NUM_MOTORS];  // the joint states
+} JointStatusPacket;
+#define JOINT_STATUS_PACKET_ID 4
+
+typedef struct {
+  PacketHeader header;
+  JointControl joints[NUM_MOTORS];
+} JointControlPacket;
+#define JOINT_CONTROL_PACKET_ID 5
+
+typedef struct {
+  PacketHeader header;
+  JointParams joints[NUM_MOTORS];
+} JointParamPacket;
+#define JOINT_PARAM_PACKET_ID 6
 
 
 #ifdef __cplusplus
