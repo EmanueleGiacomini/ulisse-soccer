@@ -15,7 +15,7 @@ extern "C" {
     var.header.seq=0;				\
     }
 
-// #pragma pack(push, 1)
+#pragma pack(push, 1)
 typedef struct {
 	uint16_t encoder_position;	// absolute position
 	int16_t encoder_speed;		// difference in position between two ticks

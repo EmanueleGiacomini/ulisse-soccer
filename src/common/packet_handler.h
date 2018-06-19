@@ -9,22 +9,21 @@ extern "C" {
 #endif
 
 typedef struct PacketHandler {    
-    
-    uint8_t *rx_buffer;
-    uint8_t *rx_buffer_end;
-    PacketSize rx_bytes_to_read;
-    
-    uint8_t tx_buffer[PACKET_SIZE_MAX];
-    int tx_start;
-    int tx_end;
-    int tx_size;
+  uint8_t *rx_buffer;
+  uint16_t bytes_to_read;
+
+
+  uint8_t *tx_buffer;
+  uint16_t bytes_to_write;
+
 }PacketHandler;
+
 
 // initializes an empty packet handler
 uint8_t PacketHandler_initialize(PacketHandler* h);
 
 // installs the manager for packet operations
-uint8_t PacketHandler_installPacket(PacketHandler* h, PacketOperations* ops);
+//uint8_t PacketHandler_installPacket(PacketHandler* h, PacketOperations* ops);
 
 // removes a packet
 uint8_t PacketHandler_uninstallPacket(PacketHandler* h, PacketType type);
