@@ -110,6 +110,9 @@ typedef struct {
 } JointParamPacket;
 #define JOINT_PARAM_PACKET_ID 6
 
+typedef PacketHeader EndEpochPacket;
+#define END_EPOCH_PACKET_ID 10
+
 
 #ifdef __cplusplus
 }

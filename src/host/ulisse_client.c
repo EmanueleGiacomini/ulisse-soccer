@@ -12,6 +12,7 @@ typedef struct UlisseClient {
 
   // these are the system variables, updated by the serial communication
   ResponsePacket response;
+  EndEpochPacket end_epoch;
   SystemStatusPacket system_status;
   JointParamPacket joint_param;
   JointStatusPacket joint_status;
@@ -229,4 +230,62 @@ PacketStatus UlisseClient_get(struct UlisseClient* cl, PacketHeader* dest, Packe
   memcpy(dest, ops->on_recive_args, ops->size);
   pthread_mutex_unlock(&cl->read_mutex);
   return Success;
+}
+
+PacketStatus UlisseClient_sync(UlisseClient* cl, int cycles) {
+  for(int c=0; c<cycles; c++) {
+    pthread_mutex_lock(&cl->write_mutex);
+    _flushBuffer(cl);
+    pthread_mutex_unlock(&cl->write_mutex);
+    // While a new end_epoch packet is sent, keep reading
+    // data
+    uint16_t current_seq=cl->end_epoch.seq;
+    do {
+      pthread_mutex_lock(&cl->read_mutex);
+      _readPacket(cl);
+      pthread_mutex_unlock(&cl->read_mutex);
+    } while(current_seq==cl->end_epoch.seq);
+    printf("Sync! current_seq: %d\n", cl->end_epoch.seq);
+  }
+}
+
+PacketStatus UlisseClient_readConfiguration(UlisseClient* cl, int timeout) {
+  printf("Querying params\n");
+  // building a new ParamControlPacket 
+  ParamControlPacket query= {
+    {
+      .type=PARAM_CONTROL_PACKET_ID,
+      .size=sizeof(ParamControlPacket),
+      .seq=0
+    },
+    .action=ParamRequest,
+    .param_type=ParamSystem // Query for ParamSystem
+  };
+  PacketStatus status = UlisseClient_sendPacket(cl, (PacketHeader*)&query, timeout);
+  printf(" [System] Status: %d\n", status);
+  if(status!=Success)
+    return status;
+  
+  // Query for ParamJoints
+  query.param_type=ParamJoints;
+  status = UlisseClient_sendPacket(cl, (PacketHeader*)&query, timeout);
+  printf(" [Joints] Status: %d\n", status);
+  if(status!=Success)
+    return status;
+  
+  // Query for ParamDrive
+  query.param_type=ParamDrive;
+  status = UlisseClient_sendPacket(cl, (PacketHeader*)&query, timeout);
+  printf(" [Drive] Status: %d\n", status);
+  if(status!=Success)
+    return status;
+  
+  printf("Done\n");
+  return status;
+}
+
+PacketStatus UlisseClient_setJointControl(UlisseClient* cl,
+              uint8_t joint_num,
+              uint16_t speed) {
+  cl->joint_control_packet.joints[joint_num].speed=speed;
 }
