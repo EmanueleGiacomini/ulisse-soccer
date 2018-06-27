@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "ulisse_client.h": "c"
+        "ulisse_client.h": "c",
+        "serial_linux.h": "c",
+        "stdint.h": "c"
     }
 }

@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "controller.h"
 
 // macro to simplify error handling
 #define handle_error(msg)   \
@@ -44,7 +45,7 @@ int main(int argc, char* argv[]) {
     return 0;
   }
   int c=1;
-  const char* device=0;
+  const char* device=serial_name;
   uint32_t baudrate = 115200;
   int rate=20;  // Refresh com rate -> default 20 Hz
   while(c<argc) {
@@ -75,14 +76,11 @@ int main(int argc, char* argv[]) {
     exit(-1);
   }
   printf("Success\n");
-void* joystick_reader_fn(void* args) {
-    
-}
-
+  
   printf("Synching\n");
   int sync_cycles=50;
   for(int i=0;i<sync_cycles;i++) {
-    UlisseCliet_sync(client, 1);
+    UlisseClient_sync(client, 1);
     printf(".");
     fflush(stdout);
   }

@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include "host/serial_linux.h"
+#include <string.h>
+#include <unistd.h>
+#include "serial_linux.h"
 
 
 typedef struct UlisseClient {

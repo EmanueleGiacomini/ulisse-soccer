@@ -4,6 +4,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+PacketStatus _rxAA(PacketHandler*, uint8_t);
+PacketStatus _rx55(PacketHandler*, uint8_t);
+PacketStatus _rxType(PacketHandler*, uint8_t);
+PacketStatus _rxSize(PacketHandler*, uint8_t);
+PacketStatus _rxPayload(PacketHandler*, uint8_t);
+PacketStatus _rxChecksum(PacketHandler*, uint8_t);
+
 void PacketHandler_initialize(PacketHandler* h) {
   h->rx_buffer=0;
   h->rx_buffer_end=0;
@@ -79,6 +86,12 @@ PacketStatus PacketHandler_sendPacket(PacketHandler* h, PacketHeader* header) {
   // Later on 0xFF must be changed with computed checksum
   _txBuf_set(h, 0xFF);
   return Success;
+}
+
+// _rxByte will interpret an incoming byte c
+PacketStatus PacketHandler_rxByte(PacketHandler* handler, uint8_t c) {
+  PacketStatus status = (*handler->rxFn)(handler, c);
+  return status;
 }
 
 // What happens here is that the first time read() is called

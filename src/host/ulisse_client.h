@@ -27,7 +27,7 @@ PacketStatus UlisseClient_get(struct UlisseClient* cl, PacketHeader* dest, Packe
 // reads all packets of an epoch (same seq),
 // and returns
 // call it periodically
-PacketStatus UlisseCliet_sync(struct UlisseClient* cl, int cycles);
+PacketStatus UlisseClient_sync(struct UlisseClient* cl, int cycles);
 
 //to be called at the beginning after a few loops of sync
 PacketStatus UlisseClient_readConfiguration(struct UlisseClient* cl, int timeout);
