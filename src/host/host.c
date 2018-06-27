@@ -75,6 +75,9 @@ int main(int argc, char* argv[]) {
     exit(-1);
   }
   printf("Success\n");
+void* joystick_reader_fn(void* args) {
+    
+}
 
   printf("Synching\n");
   int sync_cycles=50;
