@@ -12,9 +12,9 @@
 	do { perror(msg); exit(EXIT_FAILURE); } while(0)
 
 /** initialize the js_handler. Returns 0 if succesful, -1 otherwhise **/
-int js_handler_initialize(js_handler* h) {
+int js_handler_initialize(js_handler* h, char* device) {
 	int ret;
-	ret=open(STD_DEVICE, O_RDONLY);
+	ret=open(device, O_RDONLY);
 	if(ret<0) return -1;
 	h->fd=ret;
 	return 0;
@@ -30,10 +30,11 @@ int js_handler_read(js_handler* h) {
 
 	ret=read(h->fd, &e, sizeof(e));
 	if(ret<=0) return -1;
-	if(ret==sizeof(struct js_event)) {
-		printf("Received new event\n");
-		if(e.type=JS_EVENT_AXIS) {
+	if(ret==sizeof(e)) {
+		//printf("read %d bytes\n", ret);
+		if(e.type==JS_EVENT_AXIS) {
 		// Received event is an axis event
+		//printf("Received new axis event\n");
 		switch(e.number) {
 			case PAD_LEFT_XNUM: {
 				h->left_pad.x=e.value;
@@ -48,7 +49,8 @@ int js_handler_read(js_handler* h) {
 				h->right_pad.y=e.value;
 			} break;
 		}
-		} else if(e.type=JS_EVENT_BUTTON) {
+		} else if(e.type==JS_EVENT_BUTTON) {
+			//printf("Received new button event\n");
 			// Received event is a button event
 			// update js_handler status
 		}
@@ -58,18 +60,20 @@ int js_handler_read(js_handler* h) {
 }
 
 
-
-void controller_reader_func() {
-	printf("[reader] Thread built!\n");
-	struct js_event e;
-	while(1) {
-		int fd = open("/dev/input/js0", O_RDONLY);
-		if(read(fd, &e, sizeof(e)) != sizeof(e) == -1) {
-			handle_error("Error while reading /dev/input/js0");
-		}
-		/* do something interesting with processed event */
-		//printf("Detected an event!\n");
-		if(e.type==JS_EVENT_BUTTON) printf("Button pressed!\n");
-		if(e.type==JS_EVENT_AXIS) printf("Axis pressed!\n");
-	}	
+static void js_pad_print(js_pad* p) {
+	printf("x=%d\ny=%d\n", p->x, p->y);
 }
+
+static void js_button_print(js_button* p) {
+	printf("state=%d\n", p->state);
+}
+/** print js_handler state **/
+void js_handler_print(js_handler* h) {
+	printf("[handler]{\nfd=%d\n", h->fd);
+	printf(" [right_pad]=\n");
+	js_pad_print(&h->left_pad);
+	printf(" [left_pad]=\n");
+	js_pad_print(&h->right_pad);
+	printf("}\n");
+}
+

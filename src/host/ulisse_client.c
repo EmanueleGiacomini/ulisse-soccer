@@ -59,8 +59,8 @@ static PacketStatus _installPacketOp(UlisseClient* cl,
   ops->on_recive_fn=_copyToBuffer;
   ops->on_recive_args=dest;
   PacketStatus install_result = PacketHandler_installPacket(&cl->packet_handler, ops);
-  if(!install_result!=Success) {
-    printf("Error in installing ops");
+  if(install_result!=Success) {
+    printf("Error in installing ops\n");
     free(ops);
     exit(0);      
   }

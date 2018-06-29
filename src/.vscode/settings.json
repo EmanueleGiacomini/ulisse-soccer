@@ -2,6 +2,7 @@
     "files.associations": {
         "ulisse_client.h": "c",
         "serial_linux.h": "c",
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "ulisse_print_packets.h": "c"
     }
 }
