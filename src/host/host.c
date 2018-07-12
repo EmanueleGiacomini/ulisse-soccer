@@ -1,7 +1,7 @@
 #include "serial_linux.h"
-#include "../common/ulisse_packets.h"
-#include "../common/ulisse_print_packets.h"
-#include "../common/packet_handler.h"
+#include "ulisse_packets.h"
+#include "ulisse_print_packets.h"
+#include "packet_handler.h"
 #include "ulisse_client.h"
 #include <errno.h>
 #include <fcntl.h>
