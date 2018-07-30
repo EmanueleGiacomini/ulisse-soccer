@@ -1,7 +1,7 @@
 # @author: Emanuele Giacomini
 
 # .o files
-
+OBJS = digio_test.o pins.o timer.o
 
 PROJ_NAME=digio_test
 
@@ -39,7 +39,6 @@ CFLAGS += -I$(PROJ_LIB_DIR)
 
 ###############################################
 
-OBJS =
 
 $(PROJ_NAME).elf: $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS)

@@ -1,8 +1,9 @@
+
 #include <avr/io.h>
-#include <avr/interrupt.h>
 #include <string.h>
 #include "../include/timer.h"
 
+#include <avr/interrupt.h>
 // We will use FlexTimer Module (FTM) Timer One
 #define NUM_TIMERS 1
 
