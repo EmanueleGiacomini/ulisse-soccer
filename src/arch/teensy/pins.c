@@ -1,7 +1,7 @@
 #include "pins.h"
-#include "../include/digio.h"
+#include "digio.h"
 #include <avr/io.h>
-
+/*
 const Pin pins[] =
 	{		
     //0
@@ -12,7 +12,7 @@ const Pin pins[] =
 			.bit=16
 			.tcc_register=0
 			.oc_register=0
-			com_mask=0
+			.com_mask=0
 		},
 		//1
 		{
@@ -345,3 +345,4 @@ const Pin pins[] =
 			com_mask=0
 		},
 	};
+*/

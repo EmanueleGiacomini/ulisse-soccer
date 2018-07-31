@@ -35,7 +35,7 @@ struct Timer* Timer_create(char* device,
         void* timer_args) {
   
   Timer* timer=0;
-  if(!strcmp("timer_0"))
+  if(!strcmp(device, "timer_0"))
     timer=timers;
   else
     return 0;
@@ -58,7 +58,7 @@ void Timer_destroy(struct Timer* timer) {
 void _timer0_start(struct Timer* timer) {
     FTM1_SC=0;
     // Timer Overflow Interrupt Enable
-    FTM1_SC |= (1<<TOIE);
+    //FTM1_SC |= (1<<TOIE);
     
 }
 
