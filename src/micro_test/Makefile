@@ -1,5 +1,6 @@
 # @author: Emanuele Giacomini
-
+# IMPORTANT: MUST DOWNLOAD WITH APTITUDE THE FOLLOWING PACKAGES
+# sudo apt install libnewlib-dev libnewlib-arm-none-eabi
 # .o files
 
 PROJ_NAME=digio_test
@@ -45,30 +46,30 @@ CFLAGS += -I$(PROJ_LIB_DIR)
 
 ###############################################
 
-all: $(PROJ_NAME).elf
+#all: $(PROJ_NAME).elf
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+#%.o: %.c
+#	$(CC) $(CFLAGS) -c $< -o $@
 
-%.o: %.s
-	$(AS) $(CFLAGS) $< -o $@
+#%.o: %.s
+#	$(AS) $(CFLAGS) $< -o $@
 
-%.elf: %.o
-	$(CC) $(LDFLAGS) $< -o $@
+#%.elf: %.o
+#	$(CC) $(LDFLAGS) $< -o $@
 
-%.bin: %.elf
-	$(OBJCOPY) $< -O binary $@
+#%.bin: %.elf
+#	$(OBJCOPY) $< -O binary $@
 
 
-#all:	$(PROJ_NAME).elf
+all:	$(PROJ_NAME).elf
 
-#$(PROJ_NAME).elf: $(OBJS) $(PROJ_NAME).o
-#	$(CC)  -o $@ $(OBJS) $(CFLAGS)
-#	$(OBJCOPY) -O ihex $(PROJ_NAME).elf $(PROJ_NAME).hex
-#	$(OBJCOPY) -O binary $(PROJ_NAME).hex $(PROJ_NAME).bin
+$(PROJ_NAME).elf: $(OBJS) $(PROJ_NAME).o
+	$(CC)  -o $@ $(OBJS) $(CFLAGS)
+	$(OBJCOPY) -O ihex $(PROJ_NAME).elf $(PROJ_NAME).hex
+	$(OBJCOPY) -O binary $(PROJ_NAME).hex $(PROJ_NAME).bin
 
-#%.o: $(PROJ_SRC_DIR)/%.c $(PROJ_LIB_DIR)/%.h
-#	$(CC) -o $@ $(CFLAGS)
+%.o: $(PROJ_SRC_DIR)/%.c $(PROJ_LIB_DIR)/%.h
+	$(CC) -o $@ $(CFLAGS)
 
 .PHONY:	clean
 
