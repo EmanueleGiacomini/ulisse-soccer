@@ -2,10 +2,21 @@
 #include <Arduino.h>
 #include "queue.h"
 #include "foo.h"
-#include <avr/io>
+
+void setup() {
+  int i;
+  for(i=2;i<32;++i)
+    pinMode(i, 1);
+    digitalWrite(i, 1);
+}
+
+void loop() {
+
+}
+// pin 13: PTC5
 
 int main() {
-  int* bar = foo();
-  FTM1_SC |= (1<<TOIE);
-  return 0;
+  setup();
+  while(1)
+    loop();
 }
