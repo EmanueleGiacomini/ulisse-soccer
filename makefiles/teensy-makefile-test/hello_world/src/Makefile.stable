@@ -4,6 +4,9 @@
 
 #Name of PRoJect
 PRJNAME=main
+
+MCU=mk20dx256
+
 #$(info Project Name: $(PRJNAME))
 
 PREFIX=..
@@ -70,12 +73,12 @@ usb_audio.cpp \
 usb_flightsim.cpp \
 usb_inst.cpp  \
 yield.cpp 
-#main.cpp  \
-
+#$(info [Computed] Core libraries $(_TEENSYLIBS))
 
 							
 TEENSYLIBS=$(addprefix $(TEENSYCORE)/, $(_TEENSYLIBS))
-#$(info [Computed] Teensy libs: $(TEENSYLIBS))
+COREOBJS=$(addprefix $(DBUILD)/, $(addsuffix .o, $(_TEENSYLIBS)))
+#$(info [Computed] Teensy libs: $(COREOBJS))
 
 #-------# COMPILER STUFF #-----------------------------------------------#
 CNAME = arm-none-eabi-
@@ -91,11 +94,15 @@ CFLAGS+= -I$(TEENSYCORE) -I$(DINC) -I./
 #$(info [Computed] CFLAGS: $(CFLAGS))
 
 LD=$(CNAME)ld
-LDFLAGS= -O2 -Wl,--gc-sections,--relax -T $(TEENSYCORE)/mk20dx256.ld
-LDFLAGS+= -I$(TEENSYCORE)/
+LDFLAGS= -O2 -Wl,--gc-sections,--relax "-T$(TEENSYCORE)/mk20dx256.ld"
+LDFLAGS+= -lstdc++  -mthumb -mcpu=cortex-m4 -fsingle-precision-constant "-I$(TEENSYCORE)/"
+LDFLAGS+= -lm
 
 AR=$(CNAME)gcc-ar
 ARFLAGS=rcs
+
+OBJCOPY=$(CNAME)objcopy
+OBJFLAGS= -R .eeprom -R .fuse -R .lock -R .signature
 
 # Dependencies in include dir
 ifndef _DEPS
@@ -108,38 +115,42 @@ DEPS=$(addprefix $(DINC)/, $(_DEPS))
 
 # Objects in /build dir
 ifndef _OBJS
-_OBJS=$(notdir $(wildcard $(DSRC)/*.c))
-_OBJS:=$(_OBJS:.c=.o)
-#$(info [Computed] Objects: $(_OBJS))
+USRFNCT=$(notdir $(wildcard $(DSRC)/*.c))
+_OBJS:=$(addsuffix .o, $(USRFNCT))
+$(info [Computed] User made functions: $(_OBJS))
 else
-#$(info [User] Objects: $(_OBJS))
+$(info [User] User made functions: $(_OBJS))
 endif
 OBJS:=$(addprefix $(DBUILD)/, $(_OBJS))
-OBJS+=$(addsuffix .o, $(addprefix $(DBUILD)/, $(_TEENSYLIBS)))
 #-------# RULES #--------------------------------------------------------#
 dir_guard=@mkdir -p build/
 
-all: $(PRJNAME).elf
+all:$(DBUILD)/$(PRJNAME).ihex
 
-$(PRJNAME).elf:	$(DBUILD)/core.a
-	$(CC) $(LDFLAGS)
+$(DBUILD)/$(PRJNAME).ihex: $(DBUILD)/$(PRJNAME).elf
+	@echo
+	$(OBJCOPY) $(OBJFLAGS)  -O ihex $< $@
+	teensy_loader_cli -mmcu=$(MCU) -w -v $@
 
-$(DBUILD)/core.a: $(OBJS)
+
+$(DBUILD)/$(PRJNAME).elf: $(DBUILD)/core.a $(OBJS)
+	$(CC) $(LDFLAGS) -o $@ $^
+
+#Core building rules
+$(DBUILD)/core.a:	$(COREOBJS)
+	$(info Building Core...)
 	$(AR) $(ARFLAGS) $@ $^
 
-$(DBUILD)/%.o: $(DSRC)/%.c
-	$(dir_guard)
-	$(CC) $(CFLAGS) -o $@ $< 
-
-$(DBUILD)/%.o: $(TEENSYLIBS)
+$(COREOBJS): $(DBUILD)/%.o: $(TEENSYLIBS)
 	$(dir_guard)
 	$(CC) $(CFLAGS) -o $@ $(TEENSYCORE)/$*
 
-#$(PRJNAME).elf:	$(OBJS) 
-#	$(CC) -o $@ $^ $(LDFLAGS) 
-
+#User made functions rules
+$(OBJS): $(DBUILD)/%.o: $(DSRC)/$(USRFNCT)
+	$(dir_guard)
+	$(info Compiling user made files...)
+	$(CC) $(CFLAGS) -o $@ $*
 
 .PHONY: clean
-
 clean:
 	rm -rf $(DBUILD)

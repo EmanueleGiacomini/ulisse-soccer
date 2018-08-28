@@ -1,156 +1,149 @@
 #	Built by Emanuele Giacomini
+# Based on https://github.com/74hc595/teensy3-without-arduino
+
 # Need to install newest version of arm-none-eabi
-# Please type in the terminal: sudo apt install libnewlib-dev libnewlib-arm-none-eabi
+# To do so, follow these instructions
 
-#Name of PRoJect
-PRJNAME=main
+# Remove any previous installations of gcc-arm
+# $> sudo apt remove gcc-arm-none-eabi
+# Install the one from PPA:
+#	$> sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa
+#	$> sudo apt-get update
+#	$> sudo apt-get install gcc-arm-embedded
 
-MCU=mk20dx256
+# More instructions at https://stackoverflow.com/questions/50151897/arm-gcc-conflicting-cpu-architectures
 
-#$(info Project Name: $(PRJNAME))
+TARGET = teensy-mk-test
+$(info [Target name]: $(TARGET))
 
-PREFIX=..
-#Headers directory
-DINC=$(PREFIX)/include
-#Source directory
-DSRC=$(PREFIX)/src
-#Build directory
-DBUILD=$(DSRC)/build
+# Only supported version is 31 =)
+TEENSY = 31
 
-DIR_ARDUINO=/home/emanuele/.local/share/umake/ide/arduino
-TEENSYCORE=$(DIR_ARDUINO)/hardware/teensy/avr/cores/teensy3
-#$(info [Computed] Teensy Core Directory: $(TEENSYCORE))
+# CPU core speed, available frequencies:
+# 24000000
+# 48000000
+# 96000000
+TEENSY_CORE_SPEED = 96000000
 
-# Source files from teensy core folder
-_TEENSYLIBS=memset.S  \
-analog.c  \
-eeprom.c  \
-keylayouts.c  \
-math_helper.c \
-mk20dx128.c \
-nonstd.c  \
-pins_teensy.c \
-ser_print.c \
-serial1.c \
-serial2.c \
-serial3.c \
-serial4.c \
-serial5.c \
-serial6.c \
-serial6_lpuart.c  \
-touch.c \
-usb_desc.c  \
-usb_dev.c \
-usb_joystick.c  \
-usb_keyboard.c  \
-usb_mem.c \
-usb_midi.c  \
-usb_mouse.c \
-usb_mtp.c \
-usb_rawhid.c  \
-usb_seremu.c  \
-usb_serial.c  \
-usb_touch.c \
-AudioStream.cpp \
-DMAChannel.cpp  \
-EventResponder.cpp  \
-HardwareSerial1.cpp \
-HardwareSerial2.cpp \
-HardwareSerial3.cpp \
-HardwareSerial4.cpp \
-HardwareSerial5.cpp \
-HardwareSerial6.cpp \
-IPAddress.cpp \
-IntervalTimer.cpp \
-Print.cpp \
-Stream.cpp  \
-Tone.cpp  \
-WMath.cpp \
-WString.cpp \
-avr_emulation.cpp \
-new.cpp \
-usb_audio.cpp \
-usb_flightsim.cpp \
-usb_inst.cpp  \
-yield.cpp 
-#$(info [Computed] Core libraries $(_TEENSYLIBS))
+# Some libraries will require this to be defined
+# If you define this, you will break the default main.cpp
+#ARDUINO = 10600
 
-							
-TEENSYLIBS=$(addprefix $(TEENSYCORE)/, $(_TEENSYLIBS))
-COREOBJS=$(addprefix $(DBUILD)/, $(addsuffix .o, $(_TEENSYLIBS)))
-#$(info [Computed] Teensy libs: $(COREOBJS))
+# configurable options
+OPTIONS = -DUSB_SERIAL -DLAYOUT_US_ENGLISH
 
-#-------# COMPILER STUFF #-----------------------------------------------#
-CNAME = arm-none-eabi-
+# Directory to build in
+BUILDDIR = $(abspath $(CURDIR)/build)
 
-CC=$(CNAME)gcc
-#$(info [Computed] CC: $(CC))
-CFLAGS= -c -O2 -g -Wall -ffunction-sections -nostdlib -MMD \
-        -fno-exceptions	\
-        -mthumb -mcpu=cortex-m4 -fsingle-precision-constant	\
-        -D__MK20DX256__ -DF_CPU=72000000 -DUSB_SERIAL -DLAYOUT_US_ENGLISH	\
-#Include directories
-CFLAGS+= -I$(TEENSYCORE) -I$(DINC) -I./
-#$(info [Computed] CFLAGS: $(CFLAGS))
+#************************************#
+# Toolchain and teensy resources
+#************************************#
+ARDUINODIR = /home/emanuele/.local/share/umake/ide/arduino/hardware
+TOOLSPATH = $(ARDUINODIR)/tools
+COREPATH = $(dir $(CURDIR))arch/teensy3
 
-LD=$(CNAME)ld
-LDFLAGS= -O2 -Wl,--gc-sections,--relax "-T$(TEENSYCORE)/mk20dx256.ld"
-LDFLAGS+= -lstdc++  -mthumb -mcpu=cortex-m4 -fsingle-precision-constant "-I$(TEENSYCORE)/"
-LDFLAGS+= -lm
+LIBRARYPATH = $(dir $(CURDIR))include
 
-AR=$(CNAME)gcc-ar
-ARFLAGS=rcs
+#************************************#
+# Compiler Flags
+#************************************#
 
-OBJCOPY=$(CNAME)objcopy
-OBJFLAGS= -R .eeprom -R .fuse -R .lock -R .signature
+# CPPFLAGS = compiler options for C and C++
+CPPFLAGS = -Wall -g -Os -mthumb -ffunction-sections -fdata-sections -nostdlib -MMD $(OPTIONS) -DTEENSYDUINO=124 -DF_CPU=$(TEENSY_CORE_SPEED) -DTEENSY_BAREBONES -I$(COREPATH)
+# Explanation for each flag:
+# -Wall : enables all compiler's warning messages.
+# -g 		: generates debug information to be used by GDB debugger.
+# -Os 	: Optimize for size.
+# -mthumb : 
+# -ffunction-sections	: (look at next flag)	
+# -fdata-sections	:	Both needed for dead code elimination
+# -nostdlib	: Do not use the standard system startup files or libraries when linking.
+# -MMD : (TODO)
 
-# Dependencies in include dir
-ifndef _DEPS
-_DEPS=$(notdir $(wildcard $(DINC)/*.h))
-#$(info [Computed] Dependencies: $(_DEPS))
+# compiler options for C++ only
+CXXFLAGS = -std=gnu++0x -felide-constructors -fno-exceptions -fno-rtti
+
+# CFLAGS = compiler options for C files
+CFLAGS = 
+
+# Linker options
+LDFLAGS = -Os -Wl,--gc-sections -mthumb
+# -Wl, --gc-sections	:	pass --gc-sections as option for the linker
+
+# Additional libraries to link
+LIBS = 
+
+ifeq ($(TEENSY), 31)
+	CPPFLAGS += -D__MK20DX256__ -mcpu=cortex-m4
+  LDSCRIPT = $(COREPATH)/mk20dx256.ld
+  LDFLAGS += -mcpu=cortex-m4 -T$(LDSCRIPT)
 else
-#$(info [User] Dependencies: $(_DEPS))
-endif
-DEPS=$(addprefix $(DINC)/, $(_DEPS))
+	$(error Invalid setting for TEENSY)
+endif 
 
-# Objects in /build dir
-ifndef _OBJS
-USRFNCT=$(notdir $(wildcard $(DSRC)/*.c))
-_OBJS:=$(addsuffix .o, $(USRFNCT))
-$(info [Computed] User made functions: $(_OBJS))
+ifdef ARDUINO
+	CPPFLAGS += -DARDUINO=$(ARDUINO)
 else
-$(info [User] User made functions: $(_OBJS))
+	CPPFLAGS += -DUSING_MAKEFILE
 endif
-OBJS:=$(addprefix $(DBUILD)/, $(_OBJS))
-#-------# RULES #--------------------------------------------------------#
-dir_guard=@mkdir -p build/
 
-all:$(DBUILD)/$(PRJNAME).ihex
+# Toolchain 
+TOOLNAME=arm-none-eabi-
+CC = $(TOOLNAME)gcc
+CXX = $(TOOLNAME)g++
+OBJCOPY = $(TOOLNAME)objcopy
+SIZE = $(TOOLNAME)size
 
-$(DBUILD)/$(PRJNAME).ihex: $(DBUILD)/$(PRJNAME).elf
-	@echo
-	$(OBJCOPY) $(OBJFLAGS)  -O ihex $< $@
-	teensy_loader_cli -mmcu=$(MCU) -w -v $@
+# automatically create lists of the sources and objects
+LC_FILES := $(wildcard $(LIBRARYPATH)/*.c)
+TC_FILES := $(wildcard $(COREPATH)/*.c)
+C_FILES := $(wildcard *.c)
 
+# Include paths for libraries
+#L_INC := $(foreach lib, $(filter %/, $(wildcard $(LIBRARYPATH)/*)), -I$(lib))
+L_INC := -I../include -I../arch/teensy3
 
-$(DBUILD)/$(PRJNAME).elf: $(DBUILD)/core.a $(OBJS)
-	$(CC) $(LDFLAGS) -o $@ $^
+SOURCES := $(C_FILES:.c=.o) $(TC_FILES:.c=.o) $(LC_FILES:.c=.o)
+OBJS := $(foreach src, $(SOURCES), $(BUILDDIR)/$(src))
 
-#Core building rules
-$(DBUILD)/core.a:	$(COREOBJS)
-	$(info Building Core...)
-	$(AR) $(ARFLAGS) $@ $^
+#RULES
+all:	hex
 
-$(COREOBJS): $(DBUILD)/%.o: $(TEENSYLIBS)
-	$(dir_guard)
-	$(CC) $(CFLAGS) -o $@ $(TEENSYCORE)/$*
+build:	$(TARGET).elf
 
-#User made functions rules
-$(OBJS): $(DBUILD)/%.o: $(DSRC)/$(USRFNCT)
-	$(dir_guard)
-	$(info Compiling user made files...)
-	$(CC) $(CFLAGS) -o $@ $*
+hex:	$(TARGET).hex
 
-.PHONY: clean
+post_compile:	$(TARGET).hex
+	@$(abspath $(TOOLSPATH))/teensy_post_compile -file="$(basename $<)" -path=$(CURDIR) -tools="$(abspath $(TOOLSPATH))"
+
+reboot:
+	@-$(abspath $(TOOLSPATH))/teensy_reboot
+
+upload:	post_compile reboot
+
+$(BUILDDIR)/%.o: %.c
+	@echo -e "[CC]\t$<"
+	@mkdir -p "$(dir $@)"
+	@$(CC) $(CPPFLAGS) $(CFLAGS) $(L_INC) -o "$@" -c "$<"
+
+$(BUILDDIR)/%.o:	%.cpp
+	@echo -e "[CXX]\t$<"
+	@mkdir -p "$(dir $@)"
+	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(L_INC) -o "$@" -c "$<"
+
+$(TARGET).elf: $(OBJS) $(LDSCRIPT)
+	@echo -e "[LD]\t$@"
+	@$(CC) $(LDFLAGS) -o "$@" $(OBJS) $(LIBS)
+
+%.hex: %.elf
+	@echo -e "[HEX]\t$@"
+	@$(SIZE) "$<"
+	@$(OBJCOPY) -O ihex -R .eeprom "$<" "$@"
+
+# compiler generated dependency info
+-include $(OBJS:.o=.d)
+
 clean:
-	rm -rf $(DBUILD)
+	@echo Cleaning...
+	@rm -rf "$(BUILDDIR)"
+	@rm -f "$(TARGET).elf" "$(TARGET).hex"
