@@ -27,7 +27,7 @@ int main() {
   while(1) {
     if(++_counter > OF_VALUE) {
       ++counter;
-      if(counter > 1000000) {
+      if(counter > 5000000) {
         counter = 0;
         state = !state;
         setLed(state);

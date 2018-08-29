@@ -1,348 +1,296 @@
+#include <kinetis.h>
 #include "pins.h"
 #include "digio.h"
-#include <avr/io.h>
-/*
+
 const Pin pins[] =
-	{		
-    //0
+	{		//0
 		{
-			.in_register=&PINB
-			.out_register=&PORTB
-			.dir_register=&DDRB
-			.bit=16
-			.tcc_register=0
-			.oc_register=0
-			.com_mask=0
+			.in_register=&GPIOB_PDIR,
+			.out_register=&GPIOB_PDOR,
+			.dir_register=&GPIOB_PDDR,
+			.bit=16,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//1
 		{
-			.in_register=&PINB
-			.out_register=&PORTB
-			.dir_register=&DDRB
-			.bit=17
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOB_PDIR,
+			.out_register=&GPIOB_PDOR,
+			.dir_register=&GPIOB_PDDR,
+			.bit=17,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//2
 		{
-			.in_register=&PIND
-			.out_register=&PORTD
-			.dir_register=&DDRD
-			.bit=0
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOD_PDIR,
+			.out_register=&GPIOD_PDOR,
+			.dir_register=&GPIOD_PDDR,
+			.bit=0,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//3
 		{
-			.in_register=&PINA
-			.out_register=&PORTA
-			.dir_register=&DDRA
-			.bit=12
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOA_PDIR,
+			.out_register=&GPIOA_PDOR,
+			.dir_register=&GPIOA_PDDR,
+			.bit=12,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//4
 		{
-			.in_register=&PINA
-			.out_register=&PORTA
-			.dir_register=&DDRA
-			.bit=13
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOA_PDIR,
+			.out_register=&GPIOA_PDOR,
+			.dir_register=&GPIOA_PDDR,
+			.bit=13,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//5
 		{
-			.in_register=&PIND
-			.out_register=&PORTD
-			.dir_register=&DDRD
-			.bit=7
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOD_PDIR,
+			.out_register=&GPIOD_PDOR,
+			.dir_register=&GPIOD_PDDR,
+			.bit=7,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//6
 		{
-			.in_register=&PIND
-			.out_register=&PORTD
-			.dir_register=&DDRD
-			.bit=4
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOD_PDIR,
+			.out_register=&GPIOD_PDOR,
+			.dir_register=&GPIOD_PDDR,
+			.bit=4,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//7
 		{
-			.in_register=&PIND
-			.out_register=&PORTD
-			.dir_register=&DDRD
-			.bit=2
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOD_PDIR,
+			.out_register=&GPIOD_PDOR,
+			.dir_register=&GPIOD_PDDR,
+			.bit=2,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//8
 		{
-			.in_register=&PIND
-			.out_register=&PORTD
-			.dir_register=&DDRD
-			.bit=3
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOD_PDIR,
+			.out_register=&GPIOD_PDOR,
+			.dir_register=&GPIOD_PDDR,
+			.bit=3,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//9
 		{
-			.in_register=&PINC
-			.out_register=&PORTC
-			.dir_register=&DDRC
-			.bit=3
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOC_PDIR,
+			.out_register=&GPIOC_PDOR,
+			.dir_register=&GPIOC_PDDR,
+			.bit=3,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//10
 		{
-			.in_register=&PINC
-			.out_register=&PORTC
-			.dir_register=&DDRC
-			.bit=4
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOC_PDIR,
+			.out_register=&GPIOC_PDOR,
+			.dir_register=&GPIOC_PDDR,
+			.bit=4,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//11
 		{
-			.in_register=&PINC
-			.out_register=&PORTC
-			.dir_register=&DDRC
-			.bit=6
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOC_PDIR,
+			.out_register=&GPIOC_PDOR,
+			.dir_register=&GPIOC_PDDR,
+			.bit=6,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//12
 		{
-			.in_register=&PINC
-			.out_register=&PORTC
-			.dir_register=&DDRC
-			.bit=7
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOC_PDIR,
+			.out_register=&GPIOC_PDOR,
+			.dir_register=&GPIOC_PDDR,
+			.bit=7,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//13
 		{
-			.in_register=&PINC
-			.out_register=&PORTC
-			.dir_register=&DDRC
-			.bit=5
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOC_PDIR,
+			.out_register=&GPIOC_PDOR,
+			.dir_register=&GPIOC_PDDR,
+			.bit=5,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//14
 		{
-			.in_register=&PIND
-			.out_register=&PORTD
-			.dir_register=&DDRD
-			.bit=1
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOD_PDIR,
+			.out_register=&GPIOD_PDOR,
+			.dir_register=&GPIOD_PDDR,
+			.bit=1,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//15
 		{
-			.in_register=&PINC
-			.out_register=&PORTC
-			.dir_register=&DDRC
-			.bit=0
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOC_PDIR,
+			.out_register=&GPIOC_PDOR,
+			.dir_register=&GPIOC_PDDR,
+			.bit=0,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//16
 		{
-			.in_register=&PINB
-			.out_register=&PORTB
-			.dir_register=&DDRB
-			.bit=0
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOB_PDIR,
+			.out_register=&GPIOB_PDOR,
+			.dir_register=&GPIOB_PDDR,
+			.bit=0,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//17
 		{
-			.in_register=&PINB
-			.out_register=&PORTB
-			.dir_register=&DDRB
-			.bit=1
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOB_PDIR,
+			.out_register=&GPIOB_PDOR,
+			.dir_register=&GPIOB_PDDR,
+			.bit=1,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//18
 		{
-			.in_register=&PINB
-			.out_register=&PORTB
-			.dir_register=&DDRB
-			.bit=3
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOB_PDIR,
+			.out_register=&GPIOB_PDOR,
+			.dir_register=&GPIOB_PDDR,
+			.bit=3,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//19
 		{
-			.in_register=&PINB
-			.out_register=&PORTB
-			.dir_register=&DDRB
-			.bit=2
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOB_PDIR,
+			.out_register=&GPIOB_PDOR,
+			.dir_register=&GPIOB_PDDR,
+			.bit=2,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//20
 		{
-			.in_register=&PIND
-			.out_register=&PORTD
-			.dir_register=&DDRD
-			.bit=5
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOD_PDIR,
+			.out_register=&GPIOD_PDOR,
+			.dir_register=&GPIOD_PDDR,
+			.bit=5,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//21
 		{
-			.in_register=&PIND
-			.out_register=&PORTD
-			.dir_register=&DDRD
-			.bit=6
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOD_PDIR,
+			.out_register=&GPIOD_PDOR,
+			.dir_register=&GPIOD_PDDR,
+			.bit=6,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//22
 		{
-			.in_register=&PINC
-			.out_register=&PORTC
-			.dir_register=&DDRC
-			.bit=1
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOC_PDIR,
+			.out_register=&GPIOC_PDOR,
+			.dir_register=&GPIOC_PDDR,
+			.bit=1,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//23
 		{
-			.in_register=&PINC
-			.out_register=&PORTC
-			.dir_register=&DDRC
-			.bit=2
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOC_PDIR,
+			.out_register=&GPIOC_PDOR,
+			.dir_register=&GPIOC_PDDR,
+			.bit=2,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//24
 		{
-			.in_register=&PINA
-			.out_register=&PORTA
-			.dir_register=&DDRA
-			.bit=5
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOA_PDIR,
+			.out_register=&GPIOA_PDOR,
+			.dir_register=&GPIOA_PDDR,
+			.bit=5,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//25
 		{
-			.in_register=&PINB
-			.out_register=&PORTB
-			.dir_register=&DDRB
-			.bit=19
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOB_PDIR,
+			.out_register=&GPIOB_PDOR,
+			.dir_register=&GPIOB_PDDR,
+			.bit=19,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//26
 		{
-			.in_register=&PINE
-			.out_register=&PORTE
-			.dir_register=&DDRE
-			.bit=1
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOE_PDIR,
+			.out_register=&GPIOE_PDOR,
+			.dir_register=&GPIOE_PDDR,
+			.bit=1,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//27
 		{
-			.in_register=&PINC
-			.out_register=&PORTC
-			.dir_register=&DDRC
-			.bit=9
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOC_PDIR,
+			.out_register=&GPIOC_PDOR,
+			.dir_register=&GPIOC_PDDR,
+			.bit=9,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 		//28
 		{
-			.in_register=&PINC
-			.out_register=&PORTC
-			.dir_register=&DDRC
-			.bit=8
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
-		},
-		//29
-		{
-			.in_register=&PINC
-			.out_register=&PORTC
-			.dir_register=&DDRC
-			.bit=10
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
-		},
-		//30
-		{
-			.in_register=&PINC
-			.out_register=&PORTC
-			.dir_register=&DDRC
-			.bit=11
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
-		},
-		//31
-		{
-			.in_register=&PINE
-			.out_register=&PORTE
-			.dir_register=&DDRE
-			.bit=0
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
-		},
-		//32
-		{
-			.in_register=&PINB
-			.out_register=&PORTB
-			.dir_register=&DDRB
-			.bit=18
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
-		},
-		//33
-		{
-			.in_register=&PINA
-			.out_register=&PORTA
-			.dir_register=&DDRA
-			.bit=4
-			.tcc_register=0
-			.oc_register=0
-			com_mask=0
+			.in_register=&GPIOC_PDIR,
+			.out_register=&GPIOC_PDOR,
+			.dir_register=&GPIOC_PDDR,
+			.bit=8,
+			.tcc_register=0,
+			.oc_register=0,
+			.com_mask=0,
 		},
 	};
-*/

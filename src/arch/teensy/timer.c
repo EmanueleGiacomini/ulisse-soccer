@@ -1,9 +1,8 @@
-
-#include <avr/io.h>
+#include <kinetis.h>
 #include <string.h>
+#include <stdlib.h>
 #include "../include/timer.h"
 
-#include <avr/interrupt.h>
 // We will use FlexTimer Module (FTM) Timer One
 #define NUM_TIMERS 1
 
@@ -34,7 +33,7 @@ struct Timer* Timer_create(char* device,
         TimerFn timer_fn,
         void* timer_args) {
   
-  Timer* timer=0;
+  Timer* timer=(Timer*)calloc(sizeof(Timer), 1);
   if(!strcmp(device, "timer_0"))
     timer=timers;
   else
@@ -43,16 +42,17 @@ struct Timer* Timer_create(char* device,
   timer->timer_num=0;
   timer->fn=timer_fn;
   timer->args=timer_args;
+  return timer;
 }
 
 // stops and destroyes a timer
 void Timer_destroy(struct Timer* timer) {
   Timer_stop(timer);
-  cli();
+  __disable_irq();
   int timer_num=timer->timer_num;
   memset(timer, 0, sizeof(Timer));
   timer->timer_num=timer_num;
-  sei();
+  __enable_irq();
 }
 
 void _timer0_start(struct Timer* timer) {
@@ -64,15 +64,15 @@ void _timer0_start(struct Timer* timer) {
 
 // starts a timer
 void Timer_start(struct Timer* timer) {
-  cli();
+  __disable_irq();
   if(timer->timer_num==0)
     _timer0_start(timer);
-  sei();
+  __enable_irq();
 }
 
 // stops a timer
 void Timer_stop(struct Timer* timer);
-
+/*
 ISR(TIMER1_COMPA_vect) {
   // resets the counter
   FTM1_CNT=0;
@@ -85,3 +85,4 @@ ISR(TIMER1_COMPA_vect) {
   if(timers[0].fn)
     (*timers[0].fn)(timers[0].args);
 }
+*/

@@ -1,81 +1,151 @@
-# @author: Emanuele Giacomini
-# IMPORTANT: MUST DOWNLOAD WITH APTITUDE THE FOLLOWING PACKAGES
-# sudo apt install libnewlib-dev libnewlib-arm-none-eabi
-# .o files
+#	Built by Emanuele Giacomini
+# Based on https://github.com/74hc595/teensy3-without-arduino
 
-PROJ_NAME=digio_test
+# Need to install newest version of arm-none-eabi
+# To do so, follow these instructions
 
-ARDUINO_DIR=/home/emanuele/.local/share/umake/ide/arduino
-ARM_TOOLS_DIR=$(ARDUINO_DIR)/hardware/tools/arm/bin
-TEENSY_LIB_DIR=$(ARDUINO_DIR)/hardware/teensy/avr/cores/teensy3
+# Remove any previous installations of gcc-arm
+# $> sudo apt remove gcc-arm-none-eabi
+# Install the one from PPA:
+#	$> sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa
+#	$> sudo apt-get update
+#	$> sudo apt-get install gcc-arm-embedded
 
-CC_NAME =   arm-none-eabi-gcc
-LD_NAME =   $(CC_NAME)
-AR_NAME =   arm-none-eabi-ar
-AS_NAME =   arm-none-eabi-as
-OBJCOPY_NAME    =   arm-none-eabi-objcopy
+# More instructions at https://stackoverflow.com/questions/50151897/arm-gcc-conflicting-cpu-architectures
 
-CC=$(ARM_TOOLS_DIR)/$(CC_NAME)
-LD=$(ARM_TOOLS_DIR)/$(LD_NAME)
-AR=$(ARM_TOOLS_DIR)/$(AR_NAME)
-AS=$(ARM_TOOLS_DIR)/$(AS_NAME)
-OBJCOPY=$(ARM_TOOLS_DIR)/$(OBJCOPY_NAME)
+TARGET = teensy-mk-test
+$(info [Target name]: $(TARGET))
 
-PROJ_DIR=/home/emanuele/percorso-eccellenza/ulisse-soccer/src
-PROJ_LIB_DIR=$(PROJ_DIR)/arch/include
-PROJ_SRC_DIR=$(PROJ_DIR)/arch/teensy
+# Only supported version is 31 =)
+TEENSY = 31
 
-_OBJS = encoder.o	\
-				pins.o		\
-				timer.o
+# CPU core speed, available frequencies:
+# 24000000
+# 48000000
+# 96000000
+TEENSY_CORE_SPEED = 96000000
 
-OBJS = $(addprefix $(PROJ_SRC_DIR)/, $(_OBJS))
+# Some libraries will require this to be defined
+# If you define this, you will break the default main.cpp
+#ARDUINO = 10600
 
+# configurable options
+OPTIONS = -DUSB_SERIAL -DLAYOUT_US_ENGLISH
 
-#Compile flags
-ASFLAGS=-g
-LDFLAGS=
-CFLAGS= -c -O2 -g -Wall -ffunction-sections -nostdlib -MMD \
-        -fno-exceptions -felide-constructors -std=gnu++14   \
-        -fno-rtti -mthumb -mcpu=cortex-m4 -fsingle-precision-constant   \
-        -D__MK20DX256__ -DF_CPU=72000000 -DUSB_SERIAL -DLAYOUT_US_ENGLISH	\
-				-I$(TEENSY_LIB_DIR) -I$(TEENSY_LIB_DIR)/avr/
+# Directory to build in
+BUILDDIR = $(abspath $(CURDIR)/build)
 
-CFLAGS += -I$(PROJ_LIB_DIR)
+#************************************#
+# Toolchain and teensy resources
+#************************************#
+ARDUINODIR = /home/emanuele/.local/share/umake/ide/arduino/hardware
+TOOLSPATH = $(ARDUINODIR)/tools
 
-
-###############################################
-
-#all: $(PROJ_NAME).elf
-
-#%.o: %.c
-#	$(CC) $(CFLAGS) -c $< -o $@
-
-#%.o: %.s
-#	$(AS) $(CFLAGS) $< -o $@
-
-#%.elf: %.o
-#	$(CC) $(LDFLAGS) $< -o $@
-
-#%.bin: %.elf
-#	$(OBJCOPY) $< -O binary $@
+LIBRARYPATH = /home/emanuele/percorso-eccellenza/ulisse-soccer/src/arch/teensy
+COREPATH = $(LIBRARYPATH)/core
 
 
-all:	$(PROJ_NAME).elf
 
-$(PROJ_NAME).elf: $(OBJS) $(PROJ_NAME).o
-	$(CC)  -o $@ $(OBJS) $(CFLAGS)
-	$(OBJCOPY) -O ihex $(PROJ_NAME).elf $(PROJ_NAME).hex
-	$(OBJCOPY) -O binary $(PROJ_NAME).hex $(PROJ_NAME).bin
+#************************************#
+# Compiler Flags
+#************************************#
 
-%.o: $(PROJ_SRC_DIR)/%.c $(PROJ_LIB_DIR)/%.h
-	$(CC) -o $@ $(CFLAGS)
+# CPPFLAGS = compiler options for C and C++
+CPPFLAGS = -Wall -g -Os -mthumb -ffunction-sections -fdata-sections -nostdlib -MMD $(OPTIONS) -DTEENSYDUINO=124 -DF_CPU=$(TEENSY_CORE_SPEED) -DTEENSY_BAREBONES -I$(COREPATH)
+# Explanation for each flag:
+# -Wall : enables all compiler's warning messages.
+# -g 		: generates debug information to be used by GDB debugger.
+# -Os 	: Optimize for size.
+# -mthumb : 
+# -ffunction-sections	: (look at next flag)	
+# -fdata-sections	:	Both needed for dead code elimination
+# -nostdlib	: Do not use the standard system startup files or libraries when linking.
+# -MMD : (TODO)
 
-.PHONY:	clean
+# compiler options for C++ only
+CXXFLAGS = -std=gnu++0x -felide-constructors -fno-exceptions -fno-rtti
+
+# CFLAGS = compiler options for C files
+CFLAGS = 
+
+# Linker options
+LDFLAGS = -Os -Wl,--gc-sections -mthumb
+# -Wl, --gc-sections	:	pass --gc-sections as option for the linker
+
+# Additional libraries to link
+LIBS = 
+
+ifeq ($(TEENSY), 31)
+	CPPFLAGS += -D__MK20DX256__ -mcpu=cortex-m4
+  LDSCRIPT = $(COREPATH)/mk20dx256.ld
+  LDFLAGS += -mcpu=cortex-m4 -T$(LDSCRIPT)
+else
+	$(error Invalid setting for TEENSY)
+endif 
+
+ifdef ARDUINO
+	CPPFLAGS += -DARDUINO=$(ARDUINO)
+else
+	CPPFLAGS += -DUSING_MAKEFILE
+endif
+
+# Toolchain 
+TOOLNAME=arm-none-eabi-
+CC = $(TOOLNAME)gcc
+CXX = $(TOOLNAME)g++
+OBJCOPY = $(TOOLNAME)objcopy
+SIZE = $(TOOLNAME)size
+
+# automatically create lists of the sources and objects
+LC_FILES := $(wildcard $(LIBRARYPATH)/*.c)
+TC_FILES := $(wildcard $(COREPATH)/*.c)
+C_FILES := $(wildcard *.c)
+
+# Include paths for libraries
+#L_INC := $(foreach lib, $(filter %/, $(wildcard $(LIBRARYPATH)/*)), -I$(lib))
+L_INC := -I$(LIBRARYPATH)/../include -I$(LIBRARYPATH)/core -I$(LIBRARYPATH)
+
+SOURCES := $(C_FILES:.c=.o) $(TC_FILES:.c=.o) $(LC_FILES:.c=.o)
+OBJS := $(foreach src, $(SOURCES), $(BUILDDIR)/$(src))
+
+#RULES
+all:	hex
+
+build:	$(TARGET).elf
+
+hex:	$(TARGET).hex
+
+post_compile:	$(TARGET).hex
+	@$(abspath $(TOOLSPATH))/teensy_post_compile -file="$(basename $<)" -path=$(CURDIR) -tools="$(abspath $(TOOLSPATH))"
+
+reboot:
+	@-$(abspath $(TOOLSPATH))/teensy_reboot
+
+upload:	post_compile reboot
+
+$(BUILDDIR)/%.o: %.c
+	@echo -e "[CC]\t$<"
+	@mkdir -p "$(dir $@)"
+	@$(CC) $(CPPFLAGS) $(CFLAGS) $(L_INC) -o "$@" -c "$<"
+
+$(BUILDDIR)/%.o:	%.cpp
+	@echo -e "[CXX]\t$<"
+	@mkdir -p "$(dir $@)"
+	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(L_INC) -o "$@" -c "$<"
+
+$(TARGET).elf: $(OBJS) $(LDSCRIPT)
+	@echo -e "[LD]\t$@"
+	@$(CC) $(LDFLAGS) -o "$@" $(OBJS) $(LIBS)
+
+%.hex: %.elf
+	@echo -e "[HEX]\t$@"
+	@$(SIZE) "$<"
+	@$(OBJCOPY) -O ihex -R .eeprom "$<" "$@"
+
+# compiler generated dependency info
+-include $(OBJS:.o=.d)
 
 clean:
-	rm -f *.o
-	rm -f $(PROJ_LIB_DIR)/*.o
-	rm -f $(PROJ_NAME).elf
-	rm -f $(PROJ_NAME).hex
-	rm -f $(PROJ_NAME).bin
+	@echo Cleaning...
+	@rm -rf "$(BUILDDIR)"
+	@rm -f "$(TARGET).elf" "$(TARGET).hex"

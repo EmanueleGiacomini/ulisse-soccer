@@ -1,7 +1,5 @@
 #include "../include/encoder.h"
 #include <stdint.h>
-#include <avr/io.h>
-#include <avr/interrupt.h>
 
 #define NUM_ENCODERS 4
 #define ENCODER_MASK 0x0F // Needs to be changed

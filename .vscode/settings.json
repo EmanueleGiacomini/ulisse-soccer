@@ -1,5 +1,6 @@
 {
   "files.associations": {
-    "ulisse_packets.h": "c"
+    "ulisse_packets.h": "c",
+    "kinetis.h": "c"
   }
 }

@@ -1,2 +1,6 @@
 
 makefiles/teensy-makefile-test/hello_world/src/build/
+
+src/micro_test/build/
+
+utilities/c-template-build/template\.txt

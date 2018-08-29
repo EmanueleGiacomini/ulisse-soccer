@@ -19,13 +19,13 @@ def temp_print(data):
   param2=data[2]
   temp="\t\t//{0}\n" \
        "\t\t{{\n" \
-       "\t\t\t.in_register=&PIN{1}\n" \
-       "\t\t\t.out_register=&PORT{1}\n" \
-       "\t\t\t.dir_register=&DDR{1}\n" \
-       "\t\t\t.bit={2}\n" \
-       "\t\t\t.tcc_register=0\n" \
-       "\t\t\t.oc_register=0\n" \
-       "\t\t\tcom_mask=0\n" \
+       "\t\t\t.in_register=&GPIO{1}_PDIR,\n" \
+       "\t\t\t.out_register=&GPIO{1}_PDOR,\n" \
+       "\t\t\t.dir_register=&GPIO{1}_PDDR,\n" \
+       "\t\t\t.bit={2},\n" \
+       "\t\t\t.tcc_register=0,\n" \
+       "\t\t\t.oc_register=0,\n" \
+       "\t\t\t.com_mask=0,\n" \
        "\t\t}},\n".format(noentry, param1, param2)
   return temp
 
@@ -39,7 +39,7 @@ print("         type 'exit' to close the operation")
 
 while(True):
   usr_input=input("")
-  if usr_input is "exit" or len(usr_input) is 0:
+  if usr_input is 'exit' or len(usr_input) is 0:
     break
   lines = usr_input.split('\n')
   for i in lines:
