@@ -1,7 +1,8 @@
 #include <kinetis.h>
+#include "timer.h"
 #include <string.h>
 #include <stdlib.h>
-#include "../include/timer.h"
+
 
 // We will use FlexTimer Module (FTM) Timer One
 #define NUM_TIMERS 1
