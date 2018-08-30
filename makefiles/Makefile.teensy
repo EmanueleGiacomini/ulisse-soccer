@@ -1,56 +1,151 @@
-# @author: Emanuele Giacomini
+#	Built by Emanuele Giacomini
+# Based on https://github.com/74hc595/teensy3-without-arduino
 
-# .o files
+# Need to install newest version of arm-none-eabi
+# To do so, follow these instructions
+
+# Remove any previous installations of gcc-arm
+# $> sudo apt remove gcc-arm-none-eabi
+# Install the one from PPA:
+#	$> sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa
+#	$> sudo apt-get update
+#	$> sudo apt-get install gcc-arm-embedded
+
+# More instructions at https://stackoverflow.com/questions/50151897/arm-gcc-conflicting-cpu-architectures
+
+TARGET = teensy-mk-test
+$(info [Target name]: $(TARGET))
+
+# Only supported version is 31 =)
+TEENSY = 31
+
+# CPU core speed, available frequencies:
+# 24000000
+# 48000000
+# 96000000
+TEENSY_CORE_SPEED = 96000000
+
+# Some libraries will require this to be defined
+# If you define this, you will break the default main.cpp
+#ARDUINO = 10600
+
+# configurable options
+OPTIONS = -DUSB_SERIAL -DLAYOUT_US_ENGLISH
+
+# Directory to build in
+BUILDDIR = $(abspath $(CURDIR)/build)
+
+#************************************#
+# Toolchain and teensy resources
+#************************************#
+ARDUINODIR = /home/emanuele/.local/share/umake/ide/arduino/hardware
+TOOLSPATH = $(ARDUINODIR)/tools
+
+LIBRARYPATH = /home/emanuele/percorso-eccellenza/ulisse-soccer/src/arch/teensy
+COREPATH = $(LIBRARYPATH)/core
 
 
-PROJ_NAME=digio_test
 
-ARDUINO_DIR=/home/emanuele/.local/share/umake/ide/arduino
-ARM_TOOLS_DIR=$(ARDUINO_DIR)/hardware/tools/arm/bin
+#************************************#
+# Compiler Flags
+#************************************#
 
+# CPPFLAGS = compiler options for C and C++
+CPPFLAGS = -Wall -g -Os -mthumb -ffunction-sections -fdata-sections -nostdlib -MMD $(OPTIONS) -DTEENSYDUINO=124 -DF_CPU=$(TEENSY_CORE_SPEED) -DTEENSY_BAREBONES -I$(COREPATH)
+# Explanation for each flag:
+# -Wall : enables all compiler's warning messages.
+# -g 		: generates debug information to be used by GDB debugger.
+# -Os 	: Optimize for size.
+# -mthumb : 
+# -ffunction-sections	: (look at next flag)	
+# -fdata-sections	:	Both needed for dead code elimination
+# -nostdlib	: Do not use the standard system startup files or libraries when linking.
+# -MMD : (TODO)
 
-CC_NAME =   arm-none-eabi-gcc
-LD_NAME =   $(CC_NAME)
-AR_NAME =   arm-none-eabi-ar
-AS_NAME =   arm-none-eabi-as
-OBJCOPY_NAME    =   arm-none-eabi-objcopy
+# compiler options for C++ only
+CXXFLAGS = -std=gnu++0x -felide-constructors -fno-exceptions -fno-rtti
 
-CC=$(ARM_TOOLS_DIR)/$(CC_NAME)
-LD=$(ARM_TOOLS_DIR)/$(LD_NAME)
-AR=$(ARM_TOOLS_DIR)/$(AR_NAME)
-AS=$(ARM_TOOLS_DIR)/$(AS_NAME)
-OBJCOPY=$(ARM_TOOLS_DIR)/$(OBJCOPY_NAME)
+# CFLAGS = compiler options for C files
+CFLAGS = 
 
-PROJ_DIR=/home/emanuele/percorso-eccellenza/ulisse-soccer/src
-PROJ_LIB_DIR=$(PROJ_DIR)/arch/include
-PROJ_SRC_DIR=$(PROJ_DIR)/arch/teensy
+# Linker options
+LDFLAGS = -Os -Wl,--gc-sections -mthumb
+# -Wl, --gc-sections	:	pass --gc-sections as option for the linker
 
+# Additional libraries to link
+LIBS = 
 
-#Compile flags
-ASFLAGS=-g
-LDFLAGS=
-CFLAGS= -c -O2 -g -Wall -ffunction-sections -nostdlib -MMD \
-        -fno-exceptions -felide-constructors -std=gnu++14   \
-        -fno-rtti -mthumb -mcpu=cortex-m4 -fsingle-precision-constant   \
-        -D__MK20DX256__ -DF_CPU=72000000 -DUSB_SERIAL -DLAYOUT_US_ENGLISH
+ifeq ($(TEENSY), 31)
+	CPPFLAGS += -D__MK20DX256__ -mcpu=cortex-m4
+  LDSCRIPT = $(COREPATH)/mk20dx256.ld
+  LDFLAGS += -mcpu=cortex-m4 -T$(LDSCRIPT)
+else
+	$(error Invalid setting for TEENSY)
+endif 
 
-CFLAGS += -I$(PROJ_LIB_DIR)
+ifdef ARDUINO
+	CPPFLAGS += -DARDUINO=$(ARDUINO)
+else
+	CPPFLAGS += -DUSING_MAKEFILE
+endif
 
+# Toolchain 
+TOOLNAME=arm-none-eabi-
+CC = $(TOOLNAME)gcc
+CXX = $(TOOLNAME)g++
+OBJCOPY = $(TOOLNAME)objcopy
+SIZE = $(TOOLNAME)size
 
-###############################################
+# automatically create lists of the sources and objects
+LC_FILES := $(wildcard $(LIBRARYPATH)/*.c)
+TC_FILES := $(wildcard $(COREPATH)/*.c)
+C_FILES := $(wildcard *.c)
 
-OBJS =
+# Include paths for libraries
+#L_INC := $(foreach lib, $(filter %/, $(wildcard $(LIBRARYPATH)/*)), -I$(lib))
+L_INC := -I$(LIBRARYPATH)/../include -I$(LIBRARYPATH)/core -I$(LIBRARYPATH)
 
-$(PROJ_NAME).elf: $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS)
-	$(OBJCOPY) -O ihex $(PROJ_NAME).elf $(PROJ_NAME).hex
-	$(OBJCOPY) -O binary $(PROJ_NAME).hex $(PROJ_NAME).bin
+SOURCES := $(C_FILES:.c=.o) $(TC_FILES:.c=.o) $(LC_FILES:.c=.o)
+OBJS := $(foreach src, $(SOURCES), $(BUILDDIR)/$(src))
 
-.PHONY:	clean
+#RULES
+all:	hex
+
+build:	$(TARGET).elf
+
+hex:	$(TARGET).hex
+
+post_compile:	$(TARGET).hex
+	@$(abspath $(TOOLSPATH))/teensy_post_compile -file="$(basename $<)" -path=$(CURDIR) -tools="$(abspath $(TOOLSPATH))"
+
+reboot:
+	@-$(abspath $(TOOLSPATH))/teensy_reboot
+
+upload:	post_compile reboot
+
+$(BUILDDIR)/%.o: %.c
+	@echo -e "[CC]\t$<"
+	@mkdir -p "$(dir $@)"
+	@$(CC) $(CPPFLAGS) $(CFLAGS) $(L_INC) -o "$@" -c "$<"
+
+$(BUILDDIR)/%.o:	%.cpp
+	@echo -e "[CXX]\t$<"
+	@mkdir -p "$(dir $@)"
+	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(L_INC) -o "$@" -c "$<"
+
+$(TARGET).elf: $(OBJS) $(LDSCRIPT)
+	@echo -e "[LD]\t$@"
+	@$(CC) $(LDFLAGS) -o "$@" $(OBJS) $(LIBS)
+
+%.hex: %.elf
+	@echo -e "[HEX]\t$@"
+	@$(SIZE) "$<"
+	@$(OBJCOPY) -O ihex -R .eeprom "$<" "$@"
+
+# compiler generated dependency info
+-include $(OBJS:.o=.d)
 
 clean:
-	rm -f *.o
-	rm -f $(PROJ_LIB_DIR)/*.o
-	rm -f $(PROJ_NAME).elf
-	rm -f $(PROJ_NAME).hex
-	rm -f $(PROJ_NAME).bin
+	@echo Cleaning...
+	@rm -rf "$(BUILDDIR)"
+	@rm -f "$(TARGET).elf" "$(TARGET).hex"
